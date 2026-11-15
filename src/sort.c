@@ -9,6 +9,8 @@ static int compare_entries(const void *aa, const void *bb)
 	const t_entry *a = aa;
 	const t_entry *b = bb;
 	int c = 0;
+	if (a->stat_ok != b->stat_ok)
+    	return a->stat_ok ? -1 : 1;
 
 	if (g_sort_opts->time_sort && a->stat_ok && b->stat_ok)
 	{

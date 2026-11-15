@@ -2,38 +2,42 @@
 #include <stdio.h>
 #include <string.h>
 
-int parse_options(int argc, char **argv, t_options *opts, int *first)
+/* Store operands in their original order, including those before options.
+ * A literal "--" ends option parsing. A lone "-" is an operand. */
+int parse_options(int argc, char **argv, t_options *opts,
+	char **paths, int *path_count)
 {
 	int i;
 	size_t j;
+	int end_options = 0;
 
 	memset(opts, 0, sizeof(*opts));
-	i = 1;
-	while (i < argc && argv[i][0] == '-' && argv[i][1] != '\0')
+	*path_count = 0;
+	for (i = 1; i < argc; ++i)
 	{
-		if (strcmp(argv[i], "--") == 0)
+		if (!end_options && strcmp(argv[i], "--") == 0)
 		{
-			++i;
-			break;
+			end_options = 1;
+			continue;
 		}
-		j = 1;
-		while (argv[i][j] != '\0')
+		if (!end_options && argv[i][0] == '-' && argv[i][1] != '\0')
 		{
-			if (argv[i][j] == 'l') opts->long_listing = 1;
-			else if (argv[i][j] == 'R') opts->recursive = 1;
-			else if (argv[i][j] == 'a') opts->all = 1;
-			else if (argv[i][j] == 'r') opts->reverse = 1;
-			else if (argv[i][j] == 't') opts->time_sort = 1;
-			else
+			for (j = 1; argv[i][j] != '\0'; ++j)
 			{
-				fprintf(stderr, "ft_ls: invalid option -- '%c'\n", argv[i][j]);
-				fprintf(stderr, "Try 'ls --help' for supported ls options.\n");
-				return -1;
+				if (argv[i][j] == 'l') opts->long_listing = 1;
+				else if (argv[i][j] == 'R') opts->recursive = 1;
+				else if (argv[i][j] == 'a') opts->all = 1;
+				else if (argv[i][j] == 'r') opts->reverse = 1;
+				else if (argv[i][j] == 't') opts->time_sort = 1;
+				else
+				{
+					fprintf(stderr, "ft_ls: invalid option -- '%c'\n", argv[i][j]);
+					return -1;
+				}
 			}
-			++j;
 		}
-		++i;
+		else
+			paths[(*path_count)++] = argv[i];
 	}
-	*first = i;
 	return 0;
 }
